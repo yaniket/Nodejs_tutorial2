@@ -9,7 +9,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/new33playground")
 .catch((err)=> console.log("failed to connect",err))
 
 app.get('/', (req, res) => {
-  res.send('Hello Bitcoin')
+  res.send('Hello Ethereum')
 })
 
 
