@@ -1,215 +1,150 @@
+// index.js
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 
-// Create the Express app
 const app = express();
+app.use(express.json());
 
-// Set up body-parser middleware
-app.use(bodyParser.json());
-
-var myDateString = Date();
-console.log(myDateString, "date");
 // Connect to MongoDB
-mongoose
-  .connect('mongodb://127.0.0.1:27017/parking_system', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
-  });
-
-// Create a schema for the parking slots
-let course = 0;
-const parkingSlotSchema = new mongoose.Schema({
-
-  number: { type: Number, unique: true},
-  status: { type: String, enum: ['available', 'occupied'], default: 'available' },
-  date: {type:Date}
-
-}
-)
-//   reserved: { type: Boolean, default: false },}
-//   reservedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-// );
-
-console.log(parkingSlotSchema.length);
-
-
-
-
-// Create a schema for the users
-const userSchema = new mongoose.Schema({
-  name: String,
+mongoose.connect('mongodb://127.0.0.1:27017/parking-lot', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
 });
 
-// Create the models for parking slots and users
-const ParkingSlot = mongoose.model('ParkingSlot', parkingSlotSchema);
-const User = mongoose.model('User', userSchema);
+// Define the ParkingLot schema
+const parkingLotSchema = new mongoose.Schema({
+  number: Number,
+  reserved: Boolean,
+  occupied: Boolean,
+  user: String,
+  bookedAt: Date,
+});
+const ParkingLot = mongoose.model('ParkingLot', parkingLotSchema);
 
-//Adding the user
-async function createUser(){
-  const user = new User({
-    name: "Abhinav"
-  })  
-  
-  user.save();
-  let userId = await User.findById();
-  console.log(userId);
-}
-
-createUser();
-
-
-
-// /Creating the document
-async function createParking(){
-    const parking = new ParkingSlot({
-      number :17, 
-      status: "occupied", 
-      date: new Date() 
-    })
-    
-    parking.save();
-
-    let parkingLength = await ParkingSlot.find().exec();
-    if(parkingLength.length > 10)
-    console.log("50% slots reserved");
-}
-
-createParking();
-
-// API endpoint: Get all available parking slots
-app.get('/api/parking-slots/available', async (req, res) => {
+// API to get all available parking slots
+app.get('/api/parking-lot/available', async (req, res) => {
   try {
-    const slots = await ParkingSlot.find({ status: 'available' }).exec();
-    res.json(slots);
+    const availableSlots = await ParkingLot.find({
+      reserved: false,
+      occupied: false,
+    });
+    res.json(availableSlots);
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// API endpoint: Get all occupied parking slots
-app.get('/api/parking-slots/occupied', async (req, res) => {
+// API to get all occupied parking slots
+app.get('/api/parking-lot/occupied', async (req, res) => {
   try {
-    const slots = await ParkingSlot.find({ status: 'occupied' }).exec();
-    res.json(slots);
+    const occupiedSlots = await ParkingLot.find({ occupied: true });
+    res.json(occupiedSlots);
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// API endpoint: Total registered users
-app.get('/api/users/total-registered', async (req, res) => {
+// API to get total registered users
+app.get('/api/users/total', async (req, res) => {
   try {
-    const count = await User.countDocuments().exec();
-    res.json({ count });
+    const totalUsers = await ParkingLot.distinct('user').countDocuments();
+    res.json({ totalUsers });
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/courses/', (req, res) =>{
+// Helper function to find an available parking slot
+const findAvailableSlot = async () => {
+  const availableSlot = await ParkingLot.findOne({
+    reserved: false,
+    occupied: false,
+  }).sort({ number: 1 });
+  return availableSlot;
+};
 
-    const course = {
-      id : courses.length+1,
-      course : req.body.course
-    };
-    courses.push(course);
-    res.send(course);
-  })
+// Helper function to book a parking slot
+const bookParkingSlot = async (number, user) => {
+  const parkingSlot = await ParkingLot.findOne({ number });
+  parkingSlot.reserved = true;
+  parkingSlot.occupied = true;
+  parkingSlot.user = user;
+  parkingSlot.bookedAt = new Date();
+  await parkingSlot.save();
+};
 
-// bookig the Parking slot
+// Helper function to release a parking slot
+const releaseParkingSlot = async (number) => {
+  const parkingSlot = await ParkingLot.findOne({ number });
+  parkingSlot.reserved = false;
+  parkingSlot.occupied = false;
+  parkingSlot.user = '';
+  parkingSlot.bookedAt = null;
+  await parkingSlot.save();
+};
 
-  async function checkingSlots(){
-        // Check if there are any available parking slots
-      const availableSlot = await ParkingSlot.findOne({ status: 'available' }).exec();
-      console.log(availableSlot);
-      if (!availableSlot) {
-        console.log("Slots are not available");
-        return;
+// Timer to check and release parking slots if not occupied in time
+setInterval(async () => {
+  const occupiedSlots = await ParkingLot.find({ occupied: true });
+  const currentTime = new Date();
+  for (const slot of occupiedSlots) {
+    const timeElapsed = (currentTime - slot.bookedAt) / (1000 * 60);
+    if (timeElapsed > 30) {
+      await releaseParkingSlot(slot.number);
+    }
+  }
+}, 60000); // Run every minute
+
+// API to book a parking slot
+app.post('api/parking-lot/book', async (req, res) => {
+  try {
+    const { ParkingLot } = req.body;
+    const currentTime = new Date();
+    const availableSlot = await findAvailableSlot();
+
+    if (availableSlot) {
+      // Check if more than 50% capacity is utilized
+      const totalSlots = await ParkingLot.countDocuments();
+      const occupiedSlots = await ParkingLot.countDocuments({ occupied: true });
+      const utilizationPercentage = (occupiedSlots / totalSlots) * 100;
+
+      if (utilizationPercentage >= 50) {
+        // No extra wait time
+        await bookParkingSlot(availableSlot.number, user);
+      } else {
+        // Extra 15 mins wait time
+        const fifteenMinsLater = new Date(currentTime.getTime() + 15 * 60000);
+        if (availableSlot.reserved) {
+          // Reserved parking spot clash, give priority to reserved user
+          await bookParkingSlot(availableSlot.number, user);
+        } else if (currentTime >= fifteenMinsLater) {
+          await bookParkingSlot(availableSlot.number, user);
+        } else {
+          res.status(400).json({ error: 'Parking slot not available' });
+          return;
+        }
       }
 
-      // Reserve the parking slot
-    availableSlot.status = 'occupied';
-    const userId = 
-    await availableSlot.save();
+      res.send({ message: 'Parking slot booked successfully' });
+    } else {
+      res.status(400).json({ error: 'Parking slot not available' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
   }
-
-checkingSlots();
-     
-  
+});
 
 // Start the server
-app.listen(3000, () => {
-  console.log('Server listening on port 3000');
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
-                                                        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
