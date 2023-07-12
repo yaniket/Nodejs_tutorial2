@@ -59,13 +59,12 @@ app.post('/api/courses/', (req, res) =>{
   res.send(course);
 })
 
-app.delete('/api/courses/:id', (req, res)=>{
-  const course = courses.find(c => c.id === parseInt(req.params.id));
-  if(!course) res.status(404).send("id was not found")
-   res.send(course);
+app.delete('/delete', (req, res)=>{
+  const id = data[0].number;
+  console.log(id);
 
    //Delete the course
-   const index = courses.indexOf(course);
+   const index = id
    courses.splice(index, 1);
 
    res.send(course);

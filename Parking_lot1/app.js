@@ -12,38 +12,134 @@ const parkingLotSchema = new mongoose.Schema({
     reserved: Boolean,
     occupied: Boolean,
     user: String,
-    date: Date
+    Time: Date
   });
+
+  const userSchema = new mongoose.Schema({
+    category: String,
+
+  });
+
+const user = mongoose.model("User",userSchema);
   
 const ParkingLot = mongoose.model('ParkingLot', parkingLotSchema);
 
-  const parkingLot = new ParkingLot({
-    // other fields...
-    bookedAt: new Date() // Assign a specific date and time
-  });
 
 const data=[]
 // API to get all available parking slots
 app.get('/getData', async (req, res) => {
-  res.send({data:data})
+  res.send({Collection:data})
 });
 
-app.post('/create', async (req, res) => {
+let number = 0;
+let timeGeneral = 0;
 
+app.post('/creategeneral', async (req, res) => {
+    let count = 0;
     const bodyData=req.body
     const currentTime = new Date();
-    const istTime = currentTime.getHours();
+    time = currentTime.getSeconds();
+    bodyData.Time = time;
+    bodyData.category = "reserved";
+    number+=1;
 
-console.log(istTime);
-
-    bodyData.date=new Date()
-
-    const options = { timeZone: 'Asia/Kolkata' };
-    const isTime = 
-    data.push(bodyData)
     
+    
+    bodyData.number = number;
+    
+
+    if(data.length > 0 && data[0].category == "reserved"){
+      console.log("fetched user");
+}
+
+    if(data.length >= 120){
+      console.log("slot is full");
+    }
+
+     // Counting reserved category
+     for(let i = 0; i < data.length; i++){
+      if(data.length >0 && data[i].category == "reserved"){
+        count+=1;
+      }
+}
+    //reserved space is occupied completely
+    if(count >= 10){
+      bodyData.category = "general";
+      
+    }
+    data.push(bodyData);
     res.send({data:req.body})
   });
+
+  let timeReserved = 0;
+  app.post('/createreserved', async (req, res) => {
+    let count = 0;
+    const bodyData=req.body
+    const currentTime = new Date();
+    timeReserved = currentTime.getSeconds();
+    bodyData.Time = time;
+    bodyData.category = "reserved";
+    number+=1;
+
+    
+    
+    bodyData.number = number;
+    
+
+    if(data.length > 0 && data[0].category == "reserved"){
+      console.log("fetched user");
+}
+
+    if(data.length >= 120){
+      console.log("slot is full");
+    }
+
+     // Counting reserved category
+     for(let i = 0; i < data.length; i++){
+      if(data.length >0 && data[i].category == "reserved"){
+        count+=1;
+      }
+}
+    //reserved space is occupied completely
+    if(count >= 10){
+      bodyData.category = "general";
+      
+    }
+    data.push(bodyData);
+    res.send({data:req.body})
+  });
+  
+
+if(timeReserved == timeGeneral){
+  console.log("Hello World");
+}
+  // If 50% of the capacity is occupied
+  if(data.length > 30){
+    setTimeout(()=>{
+      for(let i = 0; i < data.length; i++){
+        data.splice(0, i);
+      }
+    }, 1800000)
+  }
+    setTimeout(()=>{
+      for(let i = 0; i < data.length; i++){
+        data.splice(0, i);
+      }
+    }, 900000)
+
+   
+
+
+app.delete('/delete', async (req, res) => {    
+  for(let i = 0; i < data.length; i++){
+          if(data[0].number == 1){
+            data.splice(0,1);
+            return res.send("Data deleted successfully");
+          }
+  }
+
+    
+});
 
 // API to get all occupied parking slots
 // app.get('/parking-lot/occupied', async (req, res) => {
