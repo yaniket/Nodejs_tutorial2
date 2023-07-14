@@ -1,5 +1,3 @@
-
-
 console.log('Before');
 getUser(1, (user) => {
   getRepositories(user.gitHubUsername, (repos) => {
@@ -8,7 +6,6 @@ getUser(1, (user) => {
     })
   })
 });
-
 
 getUser(1)
 .then(user => getRepositories(user.gitHubUsername))
