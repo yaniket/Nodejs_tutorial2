@@ -9,7 +9,8 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-const task = cron.schedule('* * * * *', () => {
+// In seconds
+const task = cron.schedule('*/2 * * * * *', () => {
     console.log('running a task every minute');
   });
 
