@@ -25,10 +25,30 @@ body{
   font-family: 'Poppins', sans-serif;
   background: linear-gradient(115deg, #56d8e4 10%, #9f01ea 90%);
 }
+button {
+  text-decoration: none;
+            transition: background-color 0.3s, color 0.5s; 
+        }
+button:hover{
+  cursor: pointer;
+  background-color: orange;
+            color: black;
+}
+
+.input {
+  text-decoration: none;
+            transition: background-color 0.3s, color 0.5s; 
+        }
+.input:hover{
+  cursor: pointer;
+  background-color: orange;
+            color: black;
+}
 .container{
   max-width: 800px;
   background:whitesmoke;
   width: 800px;
+  height: 550px;
   padding: 25px 40px 10px 40px;
   box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
 }
@@ -60,7 +80,7 @@ form .form-row .textarea{
 .input-data{
   position: relative;
   display: block;
-  background-color:red;
+  background-color:aliceblue;
   width: 128px;
   height: 79px;
   padding-top: 100px;
@@ -164,7 +184,8 @@ form .form-row .textarea{
     cursor: pointer;
 }
 .input-data:hover {
-  background-color: red;
+  background-color: rgb(99, 194, 239);
+  cursor: pointer;
 }
 .element{
     position: relative;
@@ -238,12 +259,76 @@ form .form-row .textarea{
     padding: 24px 32px;
    }
   }
+
+  .navbar {
+            background-color: #333;
+            overflow: hidden;
+        }
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .navbar-right {
+            float: right;
+        }
+        .search-container {
+            float: right;
+        }
+        .search-container input[type="text"] {
+            padding: 6px;
+            margin-top: 8px;
+            font-size: 17px;
+            border: none;
+            width: 200px;
+        }
+        @media screen and (max-width: 600px) {
+
+        
+            .navbar a, .navbar-right {
+                float: none;
+                display: block;
+                text-align: left;
+            }
+            .navbar-right {
+                margin-top: 5px;
+            }
+            .search-container {
+                float: none;
+                margin-top: 5px;
+            }
+            .search-container input[type="text"] {
+                width: 100%;
+            }
+             /* Footer styles */
+        
+        }     
     </style>
 
 </head>
 
 <body>
+
     <div class="container">
+      <div class="navbar">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#chat">Chat</a>
+        <div class="navbar-right">
+            <div class="search-container">
+                <input type="text" placeholder="Search...">
+            </div>
+        </div>
+    </div>
+
+    
         <div class="text" >
             Merge Your PDF below
         </div>
@@ -261,7 +346,7 @@ form .form-row .textarea{
                     <div >   
                     </div>
                   
-                    <input style="background-color:aliceblue;
+                    <input style="
                     margin-left: -38px; width: 10px; height: 10px;" class="input-data" type="file" name="pdfs"  value="upload" multiple accept=".pdf"  >
                       <img src="./media/giphy.gif" style="    width: 77px;
                       height: 64px;
@@ -270,9 +355,13 @@ form .form-row .textarea{
                       margin-top: -61px;
                       position: fixed;">
     
-                    <button style="background-color: orange;
-                    margin-top: 10px;
-                    margin-left: 23px; text-align: center; font-size: 10px;"> Submit </button>
+                    <button style="
+                    margin-top: 56px;
+                    margin-left: 7px;
+                    text-align: center;
+                    font-size: 17px;
+                    padding: 5px 15px;
+                    border-radius: 9px;"> Submit </button>
                   
                     
 
@@ -284,6 +373,7 @@ form .form-row .textarea{
                 </div>
             </div> -->
         </form>
+      
     </div>
 </body>
 

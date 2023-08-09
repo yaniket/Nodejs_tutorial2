@@ -1,7 +1,7 @@
 // const p = new Promise((resolve, reject) =>{
     
 //     reject(1);
-   
+
 
 // })
 
